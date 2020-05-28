@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
+import logo from './logo.jpg';
 
 enum GameState {
   Setup,
@@ -26,9 +27,11 @@ const FlashNumbers: React.FC<{
   onDoneF: Function;
 }> = props => {
   const [currentNumber, setCurrentNumber] = useState("");
+  const [index, setIndex] = useState(0)
 
   const showNextNumber = (currentIndex: number) => {
     if (currentIndex < props.flash.length) {
+      setIndex(currentIndex)
       setCurrentNumber(props.flash[currentIndex]);
       setTimeout(() => {
         showNextNumber(currentIndex + 1);
@@ -37,11 +40,16 @@ const FlashNumbers: React.FC<{
       props.onDoneF();
     }
   };
-
   useEffect(() => {
     showNextNumber(0);
   }, [props.flash.length]);
-  return <div className="currentNumber">{currentNumber}</div>;
+  const indexText = (index+1) + '/' + props.flash.length
+  return (
+    <div>
+      <div className="currentNumber">{currentNumber}</div>     
+      <p className="indexText">{indexText}</p>
+    </div>
+  );
 };
 
 interface ResultEntry {
@@ -82,6 +90,8 @@ const App: React.FC = () => {
   const [secPerFlash, setSecPerFlash] = useState(2);
   const [correctNumbers, setCorrectNumbers] = useState(new Array<string>());
   const [userInput, setUserInput] = useState("");
+  const [userinputStartTimestamp, setUserinputStartTimestamp] = useState(0);
+  const [userinputStopTimestamp, setUserinputStopTimestamp] = useState(0);
 
   const onStartGame = () => {
     setCorrectNumbers(makeRandomNumbers(nOfSets, nPerSet));
@@ -89,10 +99,12 @@ const App: React.FC = () => {
   };
 
   const onFlashDone = () => {
+    setUserinputStartTimestamp(Date.now())
     setGameState(GameState.UserInput);
   };
 
   const onUserInputDone = () => {
+    setUserinputStopTimestamp(Date.now())
     setGameState(GameState.Score);
   };
 
@@ -198,6 +210,7 @@ const App: React.FC = () => {
             <p className="resultText">
               Oikein: {result.correctN}/{result.totalN} -{" "}
               {((result.correctN / result.totalN) * 100).toFixed(2)}%
+              {` - kesto: ${(userinputStopTimestamp-userinputStartTimestamp)/1000} sekunttia`}
             </p>
           </div>
           <button onClick={goToSetup}>Aloita Alusta</button>
@@ -207,10 +220,15 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="App">
-      <h2>Muistipeli</h2>
-      {stateContent}
-    </div>
+    <div>
+      <a href="https://www.muistamisentaito.fi/" >
+      <img id="logo" src={logo} alt="Muistamisen taito logo" />
+      </a>
+      <div className="App">
+        <h2>Muistipeli</h2>
+        {stateContent}
+      </div>
+  </div>  
   );
 };
 
